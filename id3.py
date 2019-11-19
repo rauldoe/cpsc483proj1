@@ -29,6 +29,11 @@ def calculateEntropy(valueCountLookup):
         entropy -= px * math.log(px, 2)
     return entropy
 
+def join(arr, delim):
+    joined = ''
+    for i in range(0, len(arr)):
+        joined = joined + arr[i] + delim
+    return joined
 
 dependentAttribute = 'play'
 
@@ -47,8 +52,17 @@ e = calculateEntropy(k1)
 print(e)
 
 
-k1 = getValueCountLookup(df, 'windy')
-e = calculateEntropy(k1)
-print(e)
+m = df[['outlook', 'play']].to_numpy()
+dict = {}
 
+for i in range(0, len(m)):
+    val = m[i]
+    key = join((m[i]).tolist(), '/')
+    if (key in dict.keys()):
+        count = dict[key]['count']
+        dict[key] = count + 1
+    else:
+        dict[key] = 1
 # df[['outlook', 'play']].groupby(['outlook']).count()
+
+print(dict)
