@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import math
+import os
 
 def getValueCountLookup(dataFrame, attributeName):
     total = 0
@@ -22,15 +23,17 @@ def calculateEntropy(valueCountLookup):
     entropy = 0.0
     lookup = valueCountLookup['lookup']
     total = valueCountLookup['total']
-    # print(lookup)
-    # print(total)
 
     for key in lookup:
         px = lookup[key]/total
         entropy -= px * math.log(px, 2)
     return entropy
 
+
 dependentAttribute = 'play'
+
+os.chdir('C:/temp/cpsc483proj1')
+
 df = pd.read_csv('tennis.csv')
 
 rowCount = df.shape[0]
@@ -40,9 +43,12 @@ data = df.to_numpy()
 attribList = df.axes[1]
 
 k1 = getValueCountLookup(df, dependentAttribute)
-
 e = calculateEntropy(k1)
-
 print(e)
 
 
+k1 = getValueCountLookup(df, 'windy')
+e = calculateEntropy(k1)
+print(e)
+
+# df[['outlook', 'play']].groupby(['outlook']).count()
