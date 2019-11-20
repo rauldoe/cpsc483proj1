@@ -77,6 +77,16 @@ def entropyWrt(lookupItem):
         entropy -= p * math.log(p, 2)
     return entropy
 
+def findMax(lookupList):
+    maxItem = None
+
+    for i in lookupList.items():
+        if ((maxItem is None) or float(maxItem[1]) < float(i[1])):
+            # print('setting max')
+            # print(i)
+            maxItem = i
+    return maxItem
+
 dependentAttribute = 'play'
 
 os.chdir('C:/temp/cpsc483proj1')
@@ -95,6 +105,7 @@ k1 = getValueCountLookup(df, dependentAttribute)
 totalEntropy = entropy(k1)
 print(totalEntropy)
 
+igList = {}
 for feature in fList:
     fm = df[feature].to_numpy()
     featureOutcomes = toStringList(np.unique(fm, return_counts=False))
@@ -111,11 +122,10 @@ for feature in fList:
         # print(e)
 
     informationGain = totalEntropy + outcomeSummation
-    print(feature + ': ' + str(informationGain))
+    igList.update({ feature : informationGain})
+    # print(feature + ': ' + str(informationGain))
 
+maxItem = findMax(igList)
+fList.remove(maxItem[0])
 
-
-
-# li = getLookupItem(dict, 'True')
-# e = entropyWrt(li)
-# print(e)
+# if len(fList) > 0:
