@@ -120,24 +120,38 @@ def computeInformationGain(df1, decisionAttribute, fList):
 
     return igList
 
-def getID3Node(df, fList, feature, outcomes):
+def processID3(df, fList, feature, outcomes):
 
     if len(fList) > 1:
 
-        for outcome in outcomes:
-            # print(f"{feature} == '{parentOutCome0}'")
-            subDf = df.query(f"{feature} == '{outcome}'")
-            
+        if (feature is None):
+            subDf = df
+
             igList = computeInformationGain(subDf, decisionAttribute, fList)
             if (len(igList.items()) > 0):
                 maxItem = findMax(igList)
                 maxItemFeature = maxItem[0]
                 print(f'max: {maxItemFeature}')
-                maxItemOutcomes = toStringList(np.unique(subDf[feature].to_numpy(), return_counts=False))
+                maxItemOutcomes = toStringList(np.unique(subDf[maxItemFeature].to_numpy(), return_counts=False))
                 fList.remove(maxItemFeature)
                 print(fList)
 
-                getID3Node(subDf, fList, maxItemFeature, maxItemOutcomes)
+                processID3(subDf, fList, maxItemFeature, maxItemOutcomes)
+        else:
+            for outcome in outcomes:
+                # print(f"{feature} == '{parentOutCome0}'")
+                subDf = df.query(f"{feature} == '{outcome}'")
+                
+                igList = computeInformationGain(subDf, decisionAttribute, fList)
+                if (len(igList.items()) > 0):
+                    maxItem = findMax(igList)
+                    maxItemFeature = maxItem[0]
+                    print(f'max: {maxItemFeature}')
+                    maxItemOutcomes = toStringList(np.unique(subDf[maxItemFeature].to_numpy(), return_counts=False))
+                    fList.remove(maxItemFeature)
+                    print(fList)
+
+                    processID3(subDf, fList, maxItemFeature, maxItemOutcomes)
 
 os.chdir('C:/temp/cpsc483proj1')
 
@@ -145,13 +159,7 @@ decisionAttribute = 'play'
 df = pd.read_csv('tennis.csv')
 fList = getFeatureList(df.axes[1], decisionAttribute)
 
-igList0 = computeInformationGain(df, decisionAttribute, fList)
-maxItem0 = findMax(igList0)
-parent0 = maxItem0[0]
-parentOutComes0 = toStringList(np.unique(df[parent0].to_numpy(), return_counts=False))
-fList.remove(parent0)
-
-getID3Node(df, fList, parent0, parentOutComes0)
+processID3(df, fList, None, None)
 
 # if len(fList) > 1:
 
