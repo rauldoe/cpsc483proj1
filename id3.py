@@ -16,8 +16,8 @@ def getValueCountLookup(dataFrame, attributeName):
 
     return {'lookup' : keyLookup, 'total' : total}
 
-def getFeatureList(attributeList, dependentAttribute):
-    return [i for i in attributeList if i != dependentAttribute]
+def getFeatureList(attributeList, decisionAttribute):
+    return [i for i in attributeList if i != decisionAttribute]
 
 def entropy(valueCountLookup):
     entropy = 0.0
@@ -78,54 +78,102 @@ def entropyWrt(lookupItem):
     return entropy
 
 def findMax(lookupList):
-    maxItem = None
+    maxItem = ('', 0.0)
 
     for i in lookupList.items():
-        if ((maxItem is None) or float(maxItem[1]) < float(i[1])):
+        if (float(maxItem[1]) < float(i[1])):
             # print('setting max')
             # print(i)
             maxItem = i
     return maxItem
 
-dependentAttribute = 'play'
+def computeInformationGain(df1, decisionAttribute, fList):
+    igList = {}
+
+    rowCount = df1.shape[0]
+
+    k1 = getValueCountLookup(df1, decisionAttribute)
+    totalEntropy = entropy(k1)
+    # print(f'Total Entropy: {totalEntropy}')
+
+    if (totalEntropy == 0.0):
+        informationGain = 0.0
+    else:
+        for feature in fList:
+            fm = df1[feature].to_numpy()
+            featureOutcomes = toStringList(np.unique(fm, return_counts=False))
+            # print(featureOutcomes)
+            m = df1[[feature, decisionAttribute]].to_numpy()
+            dict = unique(m)
+
+            outcomeSummation = 0.0
+            for outcome in featureOutcomes:
+                li = getLookupItem(dict, outcome)
+                pOutcome = int(li['total'])/rowCount
+                e = entropyWrt(li)
+                outcomeSummation -= pOutcome * e
+                # print(e)
+
+            informationGain = totalEntropy + outcomeSummation
+            igList.update({ feature : informationGain})
+            # print(feature + ': ' + str(informationGain))
+
+    return igList
 
 os.chdir('C:/temp/cpsc483proj1')
 
+decisionAttribute = 'play'
 df = pd.read_csv('tennis.csv')
+fList = getFeatureList(df.axes[1], decisionAttribute)
 
-rowCount = df.shape[0]
-colCount = df.shape[1]
-data = df.to_numpy()
+igList0 = computeInformationGain(df, decisionAttribute, fList)
+maxItem0 = findMax(igList0)
+parent0 = maxItem0[0]
+parentOutComes0 = toStringList(np.unique(df[parent0].to_numpy(), return_counts=False))
+fList.remove(parent0)
 
-attribList = df.axes[1]
+if len(fList) > 1:
 
-fList = getFeatureList(attribList, dependentAttribute)
+    for parentOutCome0 in parentOutComes0:
+        # print(f"{parent0} == '{parentOutCome0}'")
+        df0 = df.query(f"{parent0} == '{parentOutCome0}'")
+        
+        igList1 = computeInformationGain(df0, decisionAttribute, fList)
+        if (len(igList1.items()) > 0):
+            maxItem1 = findMax(igList1)
+            parent1 = maxItem1[0]
+            print(f'max: {parent1}')
+            parentOutComes1 = toStringList(np.unique(df0[parent1].to_numpy(), return_counts=False))
+            fList.remove(parent1)
+            print(fList)
 
-k1 = getValueCountLookup(df, dependentAttribute)
-totalEntropy = entropy(k1)
-print(totalEntropy)
+            if len(fList) > 1:
 
-igList = {}
-for feature in fList:
-    fm = df[feature].to_numpy()
-    featureOutcomes = toStringList(np.unique(fm, return_counts=False))
-    # print(featureOutcomes)
-    m = df[[feature, dependentAttribute]].to_numpy()
-    dict = unique(m)
+                for parentOutCome1 in parentOutComes1:
+                    print(f"{parent1} == '{parentOutCome1}'")
+                    df1 = df0.query(f"{parent1} == '{parentOutCome1}'")
+                    
+                    igList2 = computeInformationGain(df1, decisionAttribute, fList)
+                    if (len(igList2.items()) > 0):
+                        maxItem2 = findMax(igList2)
+                        parent2 = maxItem2[0]
+                        print(f'max: {parent2}')
+                        parentOutComes2 = toStringList(np.unique(df1[parent2].to_numpy(), return_counts=False))
+                        fList.remove(parent2)
 
-    outcomeSummation = 0.0
-    for outcome in featureOutcomes:
-        li = getLookupItem(dict, outcome)
-        pOutcome = int(li['total'])/rowCount
-        e = entropyWrt(li)
-        outcomeSummation -= pOutcome * e
-        # print(e)
+def getID3Node():
 
-    informationGain = totalEntropy + outcomeSummation
-    igList.update({ feature : informationGain})
-    # print(feature + ': ' + str(informationGain))
+    if len(fList) > 1:
 
-maxItem = findMax(igList)
-fList.remove(maxItem[0])
-
-# if len(fList) > 0:
+        for parentOutCome0 in parentOutComes0:
+            # print(f"{parent0} == '{parentOutCome0}'")
+            df0 = df.query(f"{parent0} == '{parentOutCome0}'")
+            
+            igList1 = computeInformationGain(df0, decisionAttribute, fList)
+            if (len(igList1.items()) > 0):
+                maxItem1 = findMax(igList1)
+                parent1 = maxItem1[0]
+                print(f'max: {parent1}')
+                parentOutComes1 = toStringList(np.unique(df0[parent1].to_numpy(), return_counts=False))
+                fList.remove(parent1)
+                print(fList)
