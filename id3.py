@@ -127,31 +127,41 @@ def processID3(df, fList, feature, outcomes):
         if (feature is None):
             subDf = df
 
+            outcome = None
             igList = computeInformationGain(subDf, decisionAttribute, fList)
             if (len(igList.items()) > 0):
                 maxItem = findMax(igList)
                 maxItemFeature = maxItem[0]
-                print(f'max: {maxItemFeature}')
+                print(f'create node: {maxItemFeature} with parent: {feature} via outcome: {outcome}')
                 maxItemOutcomes = toStringList(np.unique(subDf[maxItemFeature].to_numpy(), return_counts=False))
                 fList.remove(maxItemFeature)
-                print(fList)
+                # print(fList)
 
                 processID3(subDf, fList, maxItemFeature, maxItemOutcomes)
         else:
             for outcome in outcomes:
-                # print(f"{feature} == '{parentOutCome0}'")
+                print(f"{feature} == '{outcome}'")
                 subDf = df.query(f"{feature} == '{outcome}'")
-                
-                igList = computeInformationGain(subDf, decisionAttribute, fList)
-                if (len(igList.items()) > 0):
-                    maxItem = findMax(igList)
-                    maxItemFeature = maxItem[0]
-                    print(f'max: {maxItemFeature}')
-                    maxItemOutcomes = toStringList(np.unique(subDf[maxItemFeature].to_numpy(), return_counts=False))
-                    fList.remove(maxItemFeature)
-                    print(fList)
+            
+                rowCountDf = df.shape[0]
+                rowCountQuery = subDf.shape[0]
+                print(rowCountDf)
+                print(rowCountQuery)
+                if (rowCountQuery == rowCountDf):
+                    # this outcome will result in same decision
+                    decision = subDf[decisionAttribute][0]
+                    print(f'connect: {decision} with parent: {feature} via outcome: {outcome}')
+                else:
+                    igList = computeInformationGain(subDf, decisionAttribute, fList)
+                    if (len(igList.items()) > 0):
+                        maxItem = findMax(igList)
+                        maxItemFeature = maxItem[0]
+                        print(f'create node: {maxItemFeature} with parent: {feature} via outcome: {outcome}')
+                        maxItemOutcomes = toStringList(np.unique(subDf[maxItemFeature].to_numpy(), return_counts=False))
+                        fList.remove(maxItemFeature)
+                        # print(fList)
 
-                    processID3(subDf, fList, maxItemFeature, maxItemOutcomes)
+                        processID3(subDf, fList, maxItemFeature, maxItemOutcomes)
 
 os.chdir('C:/temp/cpsc483proj1')
 
@@ -161,32 +171,4 @@ fList = getFeatureList(df.axes[1], decisionAttribute)
 
 processID3(df, fList, None, None)
 
-# if len(fList) > 1:
-
-#     for parentOutCome0 in parentOutComes0:
-#         # print(f"{parent0} == '{parentOutCome0}'")
-#         df0 = df.query(f"{parent0} == '{parentOutCome0}'")
-        
-#         igList1 = computeInformationGain(df0, decisionAttribute, fList)
-#         if (len(igList1.items()) > 0):
-#             maxItem1 = findMax(igList1)
-#             parent1 = maxItem1[0]
-#             print(f'max: {parent1}')
-#             parentOutComes1 = toStringList(np.unique(df0[parent1].to_numpy(), return_counts=False))
-#             fList.remove(parent1)
-#             print(fList)
-
-#             if len(fList) > 1:
-
-#                 for parentOutCome1 in parentOutComes1:
-#                     print(f"{parent1} == '{parentOutCome1}'")
-#                     df1 = df0.query(f"{parent1} == '{parentOutCome1}'")
-                    
-#                     igList2 = computeInformationGain(df1, decisionAttribute, fList)
-#                     if (len(igList2.items()) > 0):
-#                         maxItem2 = findMax(igList2)
-#                         parent2 = maxItem2[0]
-#                         print(f'max: {parent2}')
-#                         parentOutComes2 = toStringList(np.unique(df1[parent2].to_numpy(), return_counts=False))
-#                         fList.remove(parent2)
 
