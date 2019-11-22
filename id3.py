@@ -82,8 +82,6 @@ def findMax(lookupList):
 
     for i in lookupList.items():
         if (float(maxItem[1]) < float(i[1])):
-            # print('setting max')
-            # print(i)
             maxItem = i
     return maxItem
 
@@ -94,7 +92,6 @@ def computeInformationGain(df1, decisionAttribute, fList):
 
     k1 = getValueCountLookup(df1, decisionAttribute)
     totalEntropy = entropy(k1)
-    # print(f'Total Entropy: {totalEntropy}')
 
     if (totalEntropy == 0.0):
         informationGain = 0.0
@@ -102,7 +99,6 @@ def computeInformationGain(df1, decisionAttribute, fList):
         for feature in fList:
             fm = df1[feature].to_numpy()
             featureOutcomes = toStringList(np.unique(fm, return_counts=False))
-            # print(featureOutcomes)
             m = df1[[feature, decisionAttribute]].to_numpy()
             dict = unique(m)
 
@@ -112,11 +108,9 @@ def computeInformationGain(df1, decisionAttribute, fList):
                 pOutcome = int(li['total'])/rowCount
                 e = entropyWrt(li)
                 outcomeSummation -= pOutcome * e
-                # print(e)
 
-            informationGain = totalEntropy + outcomeSummation
+            informationGain = totalEntropy - outcomeSummation
             igList.update({ feature : informationGain})
-            # print(feature + ': ' + str(informationGain))
 
     return igList
 
@@ -132,25 +126,17 @@ def processID3(df, fList, feature, outcomes):
             if (len(igList.items()) > 0):
                 maxItem = findMax(igList)
                 maxItemFeature = maxItem[0]
-                print(f'create node: {maxItemFeature} with parent: {feature} via outcome: {outcome}')
                 maxItemOutcomes = toStringList(np.unique(subDf[maxItemFeature].to_numpy(), return_counts=False))
-                fList.remove(maxItemFeature)
-                # print(fList)
 
                 processID3(subDf, fList, maxItemFeature, maxItemOutcomes)
         else:
             for outcome in outcomes:
-                print(f"{feature} == '{outcome}'")
                 subDf = df.query(f"{feature} == '{outcome}'")
             
                 rowCountDf = df.shape[0]
                 rowCountQuery = subDf.shape[0]
-                print(rowCountDf)
-                print(rowCountQuery)
                 if (rowCountQuery == rowCountDf):
-                    # this outcome will result in same decision
                     decision = subDf[decisionAttribute][0]
-                    print(f'connect: {decision} with parent: {feature} via outcome: {outcome}')
                 else:
                     igList = computeInformationGain(subDf, decisionAttribute, fList)
                     if (len(igList.items()) > 0):
@@ -159,7 +145,6 @@ def processID3(df, fList, feature, outcomes):
                         print(f'create node: {maxItemFeature} with parent: {feature} via outcome: {outcome}')
                         maxItemOutcomes = toStringList(np.unique(subDf[maxItemFeature].to_numpy(), return_counts=False))
                         fList.remove(maxItemFeature)
-                        # print(fList)
 
                         processID3(subDf, fList, maxItemFeature, maxItemOutcomes)
 
@@ -169,6 +154,6 @@ decisionAttribute = 'play'
 df = pd.read_csv('tennis.csv')
 fList = getFeatureList(df.axes[1], decisionAttribute)
 
-processID3(df, fList, None, None)
+processID3(df, fList, 'play', None)
 
 
