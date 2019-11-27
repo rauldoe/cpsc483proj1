@@ -24,6 +24,9 @@ def entropy(valueCountLookup):
 
     for key in lookup:
         px = lookup[key]/total
+        print("when the key is ", key , " the probability is:", px)
+        print("to get our entropy, we do -px * math.log(px,2)")
+        print("entrophy(", entropy , ") = (-", px , ") * ", math.log(px,2))
         entropy -= px * math.log(px, 2)
     return entropy
 
@@ -63,7 +66,7 @@ def getLookupItem(lookup, attribute):
 
 def entropyWrt(lookupItem):
     entropy = 0.0
-
+    
     total = int(lookupItem['total'])
     lookup = lookupItem['list']
 
@@ -72,6 +75,8 @@ def entropyWrt(lookupItem):
         count = int(i['count'])
         
         p = count/total
+        print("probability is: count / total")
+        print("our current entrophy (", entropy ,") = ", count ,"/", total, " * ", math.log(p,2))
         entropy -= p * math.log(p, 2)
     return entropy
 
@@ -89,19 +94,21 @@ fList = getFeatureList(attribList, dependentAttribute)
 
 k1 = getValueCountLookup(df, dependentAttribute)
 totalEntropy = entropy(k1)
-print(totalEntropy)
+print("our total Entrophy of E(S) is: ", totalEntropy)
 
 for feature in fList:
+    print("Now evaluating: ", feature)
     fm = df[feature].to_numpy()
     featureOutcomes = toStringList(np.unique(fm, return_counts=False))
-    # print(featureOutcomes)
+    #print(featureOutcomes)
     m = df[[feature, dependentAttribute]].to_numpy()
     dict = unique(m)
-
+    
     outcomeSummation = 0.0
     for outcome in featureOutcomes:
         li = getLookupItem(dict, outcome)
         pOutcome = int(li['total'])/rowCount
+        print("the probability for outcome ", outcome, "is :", pOutcome)
         e = entropyWrt(li)
         outcomeSummation -= pOutcome * e
         # print(e)
